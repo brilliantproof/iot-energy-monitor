@@ -5,7 +5,7 @@
 
 A Python pipeline that pulls raw three-phase electrical data from IoT7 sensors every 10 minutes, detects power outages and unexpected machine stops, and produces daily summary reports with anomaly detection.
 
-Built for a real factory environment in Cambodia monitoring a label-stripping machine.
+Built for a real factory environment.
 
 ---
 
@@ -155,7 +155,7 @@ iot-energy-monitor/
 
 每 10 分鐘從七云物聯感應器抓取三相電能資料，自動偵測停電與非預期停機，產出每日統計與異常報告。
 
-實際應用於柬埔寨工廠的脫標機監控。
+實際應用於工廠生產設備監控。
 
 ---
 
