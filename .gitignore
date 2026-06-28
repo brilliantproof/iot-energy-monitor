@@ -1,0 +1,6 @@
+config.json
+data/raw/
+analysis/output/
+__pycache__/
+*.pyc
+.DS_Store

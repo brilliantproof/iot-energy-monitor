@@ -1,0 +1,11 @@
+{
+  "_comment": "複製這個檔案為 config.json，填入你自己的設定值",
+
+  "device_id":   "YOUR_DEVICE_ID",
+  "device_name": "YOUR_DEVICE_NAME",
+  "api_base":    "https://server.qiyunwulian.com:12341",
+
+  "gsheet_enabled":        false,
+  "gsheet_spreadsheet_id": "YOUR_GOOGLE_SHEET_ID",
+  "gsheet_tab_name":       "電能採集"
+}
