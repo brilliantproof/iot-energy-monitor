@@ -88,8 +88,13 @@ Obtain these from the IoT7 mobile app's network traffic. The script handles auto
 
 ### 3. Google Sheets (optional)
 
-Set `"gsheet_enabled": true` in `config.json` and place your Google OAuth2 credentials at `~/.config/gspread/credentials.json`.
-See the [gspread authentication guide](https://docs.gspread.org/en/latest/oauth2.html).
+Set `"gsheet_enabled": true` in `config.json` and use a **Service Account** (not OAuth user credentials — those expire every 7 days while the OAuth app is in testing mode, which silently breaks unattended schedules):
+
+1. In Google Cloud Console, create a Service Account and download its JSON key
+2. Save the key to `~/.config/gspread/service_account.json`
+3. Share your Google Sheet with the service account's email (Editor access)
+
+See the [gspread authentication guide](https://docs.gspread.org/en/latest/oauth2.html#service-account).
 
 ---
 
@@ -238,8 +243,13 @@ Token 存放於專案目錄之外的 `~/.config/iot7/config.json`：
 
 ### 3. Google Sheets（選配）
 
-在 `config.json` 設定 `"gsheet_enabled": true`，並將 Google OAuth2 憑證放在 `~/.config/gspread/credentials.json`。
-參考 [gspread 官方認證說明](https://docs.gspread.org/en/latest/oauth2.html)。
+在 `config.json` 設定 `"gsheet_enabled": true`，並使用 **Service Account**（勿用 OAuth 使用者授權 — OAuth 應用在測試模式下 refresh token 只有 7 天壽命，會讓無人值守排程無聲失效）：
+
+1. 在 Google Cloud Console 建立 Service Account 並下載 JSON 金鑰
+2. 金鑰存到 `~/.config/gspread/service_account.json`
+3. 把 Google Sheet 分享給 Service Account 的 email（編輯者權限）
+
+參考 [gspread 官方認證說明](https://docs.gspread.org/en/latest/oauth2.html#service-account)。
 
 ---
 

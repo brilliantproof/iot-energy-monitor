@@ -47,7 +47,7 @@ _cfg = load_project_config()
 GSHEET_ENABLED        = _cfg.get("gsheet_enabled", False)
 GSHEET_SPREADSHEET_ID = _cfg.get("gsheet_spreadsheet_id", "")
 GSHEET_TAB_NAME       = _cfg.get("gsheet_tab_name", "電能採集")
-GSHEET_CREDENTIALS    = Path.home() / ".config" / "gspread" / "credentials.json"
+GSHEET_CREDENTIALS    = Path.home() / ".config" / "gspread" / "service_account.json"
 
 # ── 參數（可調整） ────────────────────────────────────────────────────────────
 CURRENT_THRESHOLD   = 0.1   # 電流 > 此值 = 運轉中 (A)
@@ -553,11 +553,11 @@ def push_to_gsheet(daily: pd.DataFrame):
 
     if not GSHEET_CREDENTIALS.exists():
         print(f"  [SKIP] 找不到憑證檔：{GSHEET_CREDENTIALS}")
-        print("  請依照 README 說明完成 Google OAuth 設定")
+        print("  請依照 README 說明完成 Google Service Account 設定")
         return
 
     try:
-        gc = gspread.oauth(credentials_filename=str(GSHEET_CREDENTIALS))
+        gc = gspread.service_account(filename=str(GSHEET_CREDENTIALS))
         sh = gc.open_by_key(GSHEET_SPREADSHEET_ID)
         ws = sh.worksheet(GSHEET_TAB_NAME)
 
