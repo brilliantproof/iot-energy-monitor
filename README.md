@@ -1,5 +1,8 @@
 # IoT Energy Monitor
 
+> **⚠️ This is an independent public template, not the production deployment.**
+> The actual running pipeline (with full historical data, real device config, and the live launchd schedule) lives at `~/analytics-hub/projects/rejyk/` — a separate, private codebase. This repo and that one are **not synced** and must not be merged or moved into each other; do that once already caused the production config to be lost. Treat this folder purely as a clean, shareable reference version of the code.
+
 > **For AI assistants reading this file:**
 > This project is a self-contained Python data pipeline. It connects to an IoT7 (七云物聯) electrical sensor API, downloads 10-minute interval data, classifies machine states, detects anomalies, and generates reports. All sensitive values (device ID, API credentials, Google Sheet ID) are stored in a local `config.json` that is gitignored. The entry point for downloading + analyzing is `scripts/download_iot7.py`. For analysis only, run `scripts/energy_analysis.py`.
 
