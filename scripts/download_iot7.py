@@ -14,8 +14,10 @@
   3. python3 scripts/download_iot7.py
 
 Token 管理：
-  - tokenString：4 天有效，每次下載自動刷新
-  - tokenString2（refresh token）：99 天有效，過期需重新登入
+  - tokenString：4 天有效。每次下載時，過期會先試 refresh token 刷新，
+    失敗的話自動 fallback 讀本機「七云物聯」App 存在 macOS 系統裡的快取
+    （只要 App 最近開過、能正常連線即可，不用重新登入）
+  - tokenString2（refresh token）：99 天有效，過期需重新登入 App
   - 兩個 token 存在 ~/.config/iot7/config.json
 """
 
@@ -107,8 +109,33 @@ def token_expires_in(token: str) -> int:
     return decoded["exp"] - int(datetime.now().timestamp())
 
 
+def read_token_from_app() -> dict:
+    """從本機「七云物聯」App 的系統快取讀 token（不用登入，只要 App 最近開過且能連線）
+
+    僅適用於 macOS，且電腦上有裝該 App（讀的是 macOS 的 defaults/UserDefaults）。
+    若你平常是用手機開 App，這個 fallback 不會有作用，需改用其他方式取得 token
+    （例如用 mitmproxy 截手機 App 連網時的封包）。
+    """
+    result = subprocess.run(
+        ["defaults", "read", "com.iot7.qiyunwulian"],
+        capture_output=True, text=True
+    )
+    if result.returncode != 0:
+        return {}
+
+    tokens = {}
+    for line in result.stdout.splitlines():
+        line = line.strip()
+        if line.startswith('"flutter.token"'):
+            tokens["tokenString"] = line.split("=", 1)[1].strip().strip(";").strip('"').replace("Bearer ", "").strip()
+        elif line.startswith('"flutter.token2"'):
+            tokens["tokenString2"] = line.split("=", 1)[1].strip().strip(";").strip('"').replace("Bearer ", "").strip()
+    return tokens
+
+
 def get_valid_token(config: dict) -> str:
-    """取得有效的 tokenString，必要時用 refresh token 刷新"""
+    """取得有效的 tokenString：先看現有的、過期就試 refresh token、
+    再不行就 fallback 讀本機 App 快取（見 read_token_from_app）"""
     token   = config.get("tokenString", "")
     refresh = config.get("tokenString2", "")
 
@@ -120,27 +147,36 @@ def get_valid_token(config: dict) -> str:
     if token_expires_in(token) > 300:
         return token
 
-    print("  tokenString 即將過期，嘗試刷新...")
-    if token_expires_in(refresh) < 0:
-        print("[ERROR] tokenString2 也過期了，請重新登入 App 並更新 config.json")
-        sys.exit(1)
+    print("  tokenString 即將過期，嘗試用 refresh token 刷新...")
+    if token_expires_in(refresh) > 0:
+        resp = requests.post(
+            f"{API_BASE}/user/refreshtoken",
+            headers={"Content-Type": "application/json"},
+            json={"refreshToken": refresh},
+            timeout=15
+        )
+        data = resp.json()
+        if data.get("code") == 0:
+            new_token = data["data"]["tokenString"]
+            config["tokenString"] = new_token
+            save_config(config)
+            print("  tokenString 已更新（refresh token）")
+            return new_token
+        print(f"  [ERROR] refresh token 刷新失敗：{data}")
+    else:
+        print("  [ERROR] tokenString2 也過期了")
 
-    resp = requests.post(
-        f"{API_BASE}/user/refreshtoken",
-        headers={"Content-Type": "application/json"},
-        json={"refreshToken": refresh},
-        timeout=15
-    )
-    data = resp.json()
-    if data.get("code") != 0:
-        print(f"[ERROR] 刷新 token 失敗：{data}")
-        sys.exit(1)
+    print("  改嘗試讀本機「七云物聯」App 快取的 token...")
+    app_tokens = read_token_from_app()
+    app_token = app_tokens.get("tokenString", "")
+    if app_token and token_expires_in(app_token) > 300:
+        config.update(app_tokens)
+        save_config(config)
+        print("  tokenString 已更新（App 本機快取）")
+        return app_token
 
-    new_token = data["data"]["tokenString"]
-    config["tokenString"] = new_token
-    save_config(config)
-    print("  tokenString 已更新")
-    return new_token
+    print("[ERROR] App 快取裡也沒有有效 token，請打開「七云物聯」App 連線一次後再重跑")
+    sys.exit(1)
 
 
 # ─────────────────────────────────────────────────────────────────────────────

@@ -87,7 +87,13 @@ Token file lives outside the project at `~/.config/iot7/config.json`:
 }
 ```
 
-Obtain these from the IoT7 mobile app's network traffic. The script handles auto-refresh — you only need to manually update `tokenString2` when it expires (~99 days).
+To get these initially, and whenever `tokenString` expires: open the IoT7 app on the same Mac that runs this script, confirm it connects normally, then run `python3 scripts/refresh_token_from_app.py`. It reads the token straight out of the app's local macOS cache (`defaults read com.iot7.qiyunwulian`) — no login, no packet sniffing needed.
+
+`download_iot7.py` also does this automatically: when `tokenString` expires, it first tries the refresh-token endpoint, and if that fails, falls back to reading the app's local cache the same way. So in practice you only need to keep opening the app occasionally (to check readings) — the script picks up the refreshed token on its own. You only need to run `refresh_token_from_app.py` manually if you want to force-check, or for debugging.
+
+You only need to manually re-login in the app (and update `tokenString2`) when the refresh token itself expires (~99 days).
+
+Note: this only works if you use the app on the same Mac. If you mainly check readings from your phone, the local-cache method won't see the phone app's token — you'd need a different capture method (e.g. proxying the phone's traffic) instead.
 
 ### 3. Google Sheets (optional)
 
@@ -242,7 +248,13 @@ Token 存放於專案目錄之外的 `~/.config/iot7/config.json`：
 }
 ```
 
-從 IoT7 App 的網路請求中取得這兩個 token。腳本會自動處理刷新，只有 `tokenString2`（約 99 天有效）過期時才需手動更新。
+第一次取得、或之後 `tokenString` 過期時：在跑這支腳本的同一台 Mac 上打開「七云物聯」App，確認能正常連線，然後執行 `python3 scripts/refresh_token_from_app.py`。它直接讀 App 存在 macOS 系統裡的本機快取（`defaults read com.iot7.qiyunwulian`），不用登入、不用截封包。
+
+`download_iot7.py` 本身也會自動做同樣的事：`tokenString` 過期時先試 refresh token 端點，失敗的話就自動 fallback 讀 App 本機快取。所以實務上你只需要維持「偶爾開 App 看數據」的習慣，腳本會自己抓到新 token；只有想手動確認或除錯時才需要自己跑 `refresh_token_from_app.py`。
+
+只有 `tokenString2`（refresh token，約 99 天有效）過期時，才需要重新登入 App。
+
+注意：這個方法只在你用**同一台 Mac** 開 App 時有效。如果你平常主要用手機看數據，本機快取讀不到手機 App 的 token，需要改用其他方式（例如截手機網路流量）取得。
 
 ### 3. Google Sheets（選配）
 
